@@ -4,6 +4,7 @@ CS4501*
 *_i
 # Ignore previous project
 BruteForce*
+RS485_example_2*
 
 # Arduino files
 .DS_Store

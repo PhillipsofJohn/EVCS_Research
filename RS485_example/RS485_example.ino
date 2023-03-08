@@ -5,10 +5,6 @@
 #define SENSOR_BAUDRATE 9600
 #define TX_EN_PIN       7
 
-#define CUE_CMD         "$//,CUE00050*//\r\n"
-#define QCU_CMD         "$//,CU?*//\r\n"
-
-
 int count;
 
 void setup() {
