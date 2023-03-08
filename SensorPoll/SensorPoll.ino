@@ -1,6 +1,6 @@
 /**
   EVCS Research
-  Name: SerialSensorPoll
+  Name: SensorPoll
   Purpose: Poll the FT702LT Wind Sesnor for wind speed and direction
 
   @author John Phillps
