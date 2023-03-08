@@ -1,0 +1,19 @@
+# Ignore files for other classes
+CS4501*
+# Ignore everything ending in "_i"
+*_i
+# Ignore previous project
+BruteForce*
+
+# Arduino files
+.DS_Store
+bin/*/
+*build-*
+*build*
+*~
+build-tmp/
+Makefile
+doc/
+debug.txt
+.ycm_extra_conf.pyc
+.ropeproject
