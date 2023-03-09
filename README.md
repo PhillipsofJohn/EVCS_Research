@@ -3,7 +3,7 @@
 >Author: John Phillips (jcp3ats@virginia.edu) <br>
 Faculty Supervisor: Stephan De Wekker (sfd3d@virginia.edu)
 <br>
-These projects were completed in the Spring 2023 semester for EVSC: 4995 (Supervised Research) at the University of Virginia.  The purpose of this codebase is to create an embedded logging peripheral for an FT-7 Serier anemometer.
+These code projects were written in the Spring 2023 semester for EVSC: 4995 (Supervised Research) at the University of Virginia.  The purpose of this codebase is to create an embedded logging peripheral for an FT-7 Serier anemometer.
 
 
 ## Projects
