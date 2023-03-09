@@ -2,7 +2,7 @@
 CS4501*
 # Ignore everything ending in "_i"
 *_i
-# Ignore previous project
+# Ignores following projects:
 BruteForce*
 RS485_example_2*
 

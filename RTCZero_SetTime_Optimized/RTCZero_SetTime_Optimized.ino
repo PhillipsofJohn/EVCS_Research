@@ -5,6 +5,8 @@
 
 #define Serial SerialUSB
 
+#define OFFSET    7     // Compensates for compile time delay (seconds)
+
 void print2digits(int number);
 
 /* Create an rtc object */
@@ -18,7 +20,7 @@ void setup()
 
     // set system time = compile time
     sscanf(__TIME__, "%2d %*c %2d %*c %2d", &hour, &minute, &second);
-    rtc.setTime(hour, minute, second);
+    rtc.setTime(hour, minute, (second + OFFSET));
     rtc.setDate(31, 1, 2023);
 
     while(!SerialUSB);
