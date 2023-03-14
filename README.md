@@ -3,7 +3,7 @@
 >Author: John Phillips (jcp3ats@virginia.edu) <br>
 Faculty Supervisor: Stephan De Wekker (sfd3d@virginia.edu)
 <br>
-These code projects were written in the Spring 2023 semester for EVSC: 4995 (Supervised Research) at the University of Virginia.  The purpose of this codebase is to create an embedded logging peripheral for an FT-7 Serier anemometer.
+These code projects were written in the Spring 2023 semester for EVSC: 4995 (Supervised Research) at the University of Virginia.  The purpose of this codebase is to create an embedded logging peripheral for an FT-7 Series anemometer.
 
 
 ## Projects
@@ -35,6 +35,8 @@ Optimizes compile time parsing and uses a user-defined date to reduce the compil
 
 ### SensorLog
 > ***TODO*** Continuation of [SensorPoll](#sensorpoll)
+- ***TODO*** : Non-blocking write operation (minimal write delay)
+- ***TODO*** : Add checksum data validation
 
 ### SensorPoll
 > Polls the FT702LT anemometer for wind speed and direction (prints to SerialUSB)
