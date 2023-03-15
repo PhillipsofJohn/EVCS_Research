@@ -43,13 +43,14 @@ const char* tempFileName = "test.txt";
 void queryWV();
 void queryCMD(char * cmd);
 void sensorInit(int status);
+byte verifyCkSum(char data[]);
 void printWV(char data[]);
 void setFileName();
 uint32_t rtc_millis();
 
 /* Globals */
 int gCount = 0;
-const int saveNum = 3;
+const int saveNum = 16; // needs to be 16 so that gBuf==512
 char gBuf[saveNum * PKT_LEN];
 int gYear, gMonth, gDay;
 
@@ -69,7 +70,7 @@ void RunFSM() {
       digitalWrite(LED_BUILTIN, LOW);
 
       // Init SD Card
-      if(!SD.begin(ss)) {
+      if(!SD.begin(4)) {
         SerialOut.println("\r\n--ERROR-- SD CARD INIT FAILED\r\n");
         while(1) {
           digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
@@ -155,7 +156,7 @@ void RunFSM() {
     case SD_SAVE:
       // save data to SD card
       // SerialOut.println("SD_SAVE");
-      sdFile = SD.open("test.txt", FILE_WRITE);
+      sdFile = SD.open("test99.txt", FILE_WRITE);
       if(sdFile) {
         // SerialOut.print("Available to write: ");
         // SerialOut.println(sdFile.availableForWrite());
@@ -212,6 +213,26 @@ void sensorInit(int status) {
   }
 }
 
+/**
+  Verifies the checksum of the WV query response (Section 5.3.3 in FT702LT Manual)
+
+  @param data 24 byte WV response
+  @return (byte) 0 -> valid checksum
+*/
+byte verifyCkSum(char *data) {
+  // Calculate packet checksum (XOR everything from '$' to '*')
+  byte ckSum = data[1];
+  for(int i=2; i<19; i++) {
+    ckSum ^= data[i];
+  }
+  // Assemble checksum from data[20 - 21]
+  byte recvCkSum = ((data[20]<<4) & data[21]);
+  if(ckSum == recvCkSum) {
+    return 0;
+  }
+  return 1;
+}
+
 void printWV(char data[]) {
   float wSpeed = (data[9]-48) * 10 + (data[10]-48) + (data[12]-48) * 0.1;
   float wDir   = (data[14]-48) * 100 + (data[15]-48) * 10 + (data[16]-48);
@@ -242,7 +263,9 @@ uint32_t rtc_millis() {
   sprintf(buf, "%02d.%03d", rtc.getSeconds(), (millis() % 1000));
   SerialOut.println(buf);
   return (rtc.getSeconds() * 1000) + (millis() % 1000);
-  }
+}
+
+
 
 
 void setup() {
@@ -251,7 +274,7 @@ void setup() {
   rtc.begin();
   sscanf(__TIME__, "%2d %*c %2d %*c %2d", &hour, &minute, &second);
   rtc.setTime(hour, minute, (second+8));
-  rtc.setDate(2, 3, 23);
+  rtc.setDate(15, 3, 23);
 
   FSM = BOOT; // Initial State
 }

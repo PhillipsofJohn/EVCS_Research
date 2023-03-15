@@ -36,7 +36,7 @@ Optimizes compile time parsing and uses a user-defined date to reduce the compil
 ### SensorLog
 > ***TODO*** Continuation of [SensorPoll](#sensorpoll)
 - ***TODO*** : Non-blocking write operation (minimal write delay)
-- ***TODO*** : Add checksum data validation
+- ***TODO*** : Test checksum response validation latency
 
 ### SensorPoll
 > Polls the FT702LT anemometer for wind speed and direction (prints to SerialUSB)
