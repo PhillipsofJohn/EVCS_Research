@@ -7,17 +7,29 @@ These code projects were written in the Spring 2023 semester for EVSC: 4995 (Sup
 
 
 ## Projects
+* [BLE_Server_ESP32](#ble_server_esp32)
+* [BLE_Test_ESP32](#ble_test_esp32)
 * [GPS_Clock](#gps_clock)
+* [NonBlockingWrite](#nonblockingwrite)
 * [RS485_example](#rs485_example)
 * [RTCZero_SetTime](#rtczero_settime)
 * [RTCZero_SetTime_Optimized](#rtczero_settime_optimized)
 * [SensorLog](#sensorlog)
+* [SensorLog_OLD](#sensorlog_OLD)
 * [SensorPoll](#sensorpoll)
+* [SensorPoll_ESP32](#sensorpoll_esp32)
 * [SensorSerial](#sensorserial)
+
+### BLE_Server_ESP32
+
+### BLE_Test_ESP32
 
 ### GPS_Clock
 
 > Set the Arduino Zero on-board RTC through GPS data
+
+### NonBlockingWrite
+
 
 ### RS485_example
 > Basic usage of RS-485 (half-duplex) between 2 Arduino boards
@@ -38,8 +50,14 @@ Optimizes compile time parsing and uses a user-defined date to reduce the compil
 - ***TODO*** : Non-blocking write operation (minimal write delay)
 - ***TODO*** : Test checksum response validation latency
 
+### SensorLog_OLD
+
+
 ### SensorPoll
 > Polls the FT702LT anemometer for wind speed and direction (prints to SerialUSB)
+
+### SensorPoll_ESP32
+
 
 ### SensorSerial
 > ***TODO*** Enables the FT-7 anemometer to send continuous updates without periphal polling commands
