@@ -11,8 +11,7 @@
 
 #include <Arduino.h>
 #include <RTCZero.h>
-#include <SPI.h>
-#include <SD.h>
+#include <SdFat.h>
 
 #define SerialOut         SerialUSB
 #define SerialSensor      Serial
@@ -24,35 +23,44 @@
 
 #define USB_CONNECTED     1
 
- 
+// Try max (50) SPI clock for an SD. Reduce SPI_CLOCK if errors occur.
+#define SPI_CLOCK SD_SCK_MHZ(25)
+const uint8_t SD_CS_PIN = 6;
+#define SD_CONFIG SdSpiConfig(SD_CS_PIN, DEDICATED_SPI, SPI_CLOCK)
+
 
 /* FSM States */
-enum {BOOT, SENSOR_POLL, SD_SAVE} FSM;
+enum {BOOT, SENSOR_POLL, SD_SAVE, SD_FLUSH} FSM;
 
 /* Create an rtc object */
 RTCZero rtc;
 
 /* SD Card File */
-File sdFile;
-const int ss = 4;
-const int PKT_LEN = 32;
+SdFs sd;
+FsFile sdFile;
+const uint8_t PKT_LEN = 32;
 char sdFileName[13]; // SD FILE NAME LIMIT = 13
-const char* tempFileName = "test.txt";
+const char* tempFileName = "testNB4.txt";
+
 
 /* Function Prototypes */
 void queryWV();
 void queryCMD(char * cmd);
-void sensorInit(int status);
-byte verifyCkSum(char data[]);
+void sensorInit(uint8_t status);
+uint8_t verifyCkSum(char data[]);
 void printWV(char data[]);
 void setFileName();
 uint32_t rtc_millis();
+void error(const char * msg, bool trap);
 
 /* Globals */
-int gCount = 0;
-const int saveNum = 16; // needs to be 16 so that gBuf==512
+uint8_t gCount = 0;
+uint8_t saveIntCount = 0;
+const uint8_t saveInt = 4;
+const uint8_t saveNum = 16; // needs to be 16 so that gBuf==512
 char gBuf[saveNum * PKT_LEN];
 int gYear, gMonth, gDay;
+
 
 /* === STATE MACHINE === */
 void RunFSM() {
@@ -70,23 +78,30 @@ void RunFSM() {
       digitalWrite(LED_BUILTIN, LOW);
 
       // Init SD Card
-      if(!SD.begin(4)) {
-        SerialOut.println("\r\n--ERROR-- SD CARD INIT FAILED\r\n");
-        while(1) {
-          digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
-          delay(100);
-        }
+      if (!sd.begin(SD_CONFIG)) {
+        error("SD INIT FAILED", true);
       }
+
       setFileName();
-      // sdFile = SD.open(tempFileName, FILE_WRITE);
-      // if(sdFile) {
+
+      // Open or create file - Append existing file.
+      if (!sdFile.open(tempFileName, O_WRITE | O_CREAT | O_APPEND)) {
+        error("SD OPEN FAILED", true);
+      }
+
+      // TODO: Preallocate
+      // // File must be pre-allocated to avoid huge
+      // // delays searching for free clusters.
+      // if (!file.preAllocate(LOG_FILE_SIZE)) {
+      //   Serial.println("preAllocate failed\n");
+      //   file.close();
+      //   return;
+      // }
+
+      // TODO: WRITE HEADER
       //   const char* tempBuf = "$-------------------------------$Sensor:FT702LT,Serial#:8107-011$-------------------------------";
       //   sdFile.write(tempBuf, (saveNum * PKT_LEN));
-      //   sdFile.close();
-      // } else {
-      //   SerialOut.println("SD Header Write failed");
-      //   while(1);
-      // }
+
 
 
       // Set global date
@@ -101,7 +116,7 @@ void RunFSM() {
 
     case SENSOR_POLL:
       char data[24];
-      int rlen;
+      uint8_t rlen;
 
       queryWV(); // Poll Sensor for Windspeed
       
@@ -125,9 +140,9 @@ void RunFSM() {
           
           // printWV(data); // !!! NEED TO TEST
 
-          int sec   = rtc.getSeconds();
-          int min   = rtc.getMinutes();
-          int hour  = rtc.getHours();
+          uint8_t sec   = rtc.getSeconds();
+          uint8_t min   = rtc.getMinutes();
+          uint8_t hour  = rtc.getHours();
           // uint32_t millis = rtc_millis();
           // SerialOut.print("Millis: ");
           // SerialOut.println(millis);
@@ -138,8 +153,7 @@ void RunFSM() {
           // SerialOut.println(buf);
           // SerialOut.println("---------");
           // SerialOut.println(gBuf);
-          // SerialOut.println("---------");
-          // SerialOut.println(rtc.getY2kEpoch());
+
 
           // Inc gCount only if packet is valid
           gCount++;          
@@ -155,19 +169,33 @@ void RunFSM() {
 
     case SD_SAVE:
       // save data to SD card
-      // SerialOut.println("SD_SAVE");
-      sdFile = SD.open("test99.txt", FILE_WRITE);
-      if(sdFile) {
-        // SerialOut.print("Available to write: ");
-        // SerialOut.println(sdFile.availableForWrite());
-        sdFile.write(gBuf, (saveNum * PKT_LEN));
-        sdFile.close();
-      } else {
-        SerialOut.println("\r\n--ERROR-- SD CARD WRITE FAILED");
-        SerialOut.println(sdFile.getWriteError());
-        SerialOut.println();
-        delay(2000);
+      SerialOut.println("SD_SAVE");
+      if(!sdFile.write(gBuf, (saveNum * PKT_LEN))) {
+        error("SD WRITE FAILED", false);
+        SerialOut.print("Available to write: ");
+        SerialOut.println(sdFile.availableForWrite());
       }
+
+      // if(saveIntCount >= saveInt) {
+      //   saveIntCount = 0;
+      //   FSM = SD_FLUSH;    // >>>> State Change! <<<<//
+      // } else {
+      //   saveIntCount++;
+      //   FSM = SENSOR_POLL;    // >>>> State Change! <<<<//
+      // }
+      break;
+
+    case SD_FLUSH:
+      // sdFile.close();
+      // sdFile = SD.open(tempFileName, FILE_WRITE);
+      // if(!sdFile) {
+      //   SerialOut.println("\r\n--ERROR-- SD CARD WRITE FAILED\r\n");
+      //   SerialOut.println("STOPPING");
+      //   while(1);
+      // } else {
+      //   SerialOut.print("LOGGING TO: ");
+      //   SerialOut.println(tempFileName);
+      // }
       FSM = SENSOR_POLL;    // >>>> State Change! <<<<//
       break;
 
@@ -203,7 +231,7 @@ void queryCMD(char * cmd) {
 
   @param status Sets TX_EN (High=TX || LOW=RX)
 */
-void sensorInit(int status) {
+void sensorInit(uint8_t status) {
   SerialSensor.begin(SENSOR_BAUDRATE);
   pinMode(TX_EN_PIN, OUTPUT);       // DE/RE Controling pin of RS-485 (TX_EN)
   delay(20);
@@ -218,7 +246,7 @@ void sensorInit(int status) {
 
   @param data 24 byte WV response
   @return (byte) 0 -> valid checksum
-*/
+*/ 
 byte verifyCkSum(char *data) {
   // Calculate packet checksum (XOR everything from '$' to '*')
   byte ckSum = data[1];
@@ -245,9 +273,9 @@ void printWV(char data[]) {
 
 void setFileName() {
   char* months[] = {"JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"};
-  int year = rtc.getYear();
-  int month = rtc.getMonth();
-  int day = rtc.getDay();
+  uint8_t year = rtc.getYear();
+  uint8_t month = rtc.getMonth();
+  uint8_t day = rtc.getDay();
   char* month_str = months[month-1];
   sprintf(sdFileName, "%02d%s%02d.txt", day, month_str, year);
   SerialOut.print("sdFileName: ");
@@ -264,13 +292,21 @@ uint32_t rtc_millis() {
   SerialOut.println(buf);
   return (rtc.getSeconds() * 1000) + (millis() % 1000);
 }
-
-
+ 
+void error(const char *msg, bool trap) {
+  SerialOut.print("--> ERROR: ");
+  SerialOut.println(msg);
+  SerialOut.println();
+  while(trap) { 
+    digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
+    delay(100);
+  }
+}
 
 
 void setup() {
   // Init RTC from compile time (__TIME__)
-  int hour, minute, second;
+  uint8_t hour, minute, second;
   rtc.begin();
   sscanf(__TIME__, "%2d %*c %2d %*c %2d", &hour, &minute, &second);
   rtc.setTime(hour, minute, (second+8));

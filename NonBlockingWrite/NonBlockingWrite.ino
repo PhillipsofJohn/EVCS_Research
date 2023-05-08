@@ -43,7 +43,7 @@ void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
 
   // init the SD card
-  if (!SD.begin()) {
+  if (!SD.begin(4)) {
     Serial.println("Card failed, or not present");
     // don't do anything more:
     while (1);

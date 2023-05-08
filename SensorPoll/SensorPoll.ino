@@ -2,10 +2,8 @@
   EVCS Research
   Name: SensorPoll
   Purpose: Poll the FT702LT Wind Sesnor for wind speed and direction
-
   @author John Phillps
   @version 1.0 2/17/23
-
 */
 
 #include <Arduino.h>
@@ -81,7 +79,7 @@ void loop() {
     // SerialOut.println(buf);
     // SerialOut.flush();
   }
-  delay(2000);
+  delay(20);
 }
 
 // Queries sensor for wind speed and direction
@@ -91,7 +89,6 @@ void  queryWV() {
 
 /**
   Sends command to sensor via RS485 (timing set for Query Commands)
-
   @param cmd Sensor Command
 */
 void queryCMD(char * cmd) {
@@ -106,7 +103,6 @@ void queryCMD(char * cmd) {
 
 /**
   Inits sensor serial interface and sets the control pin of RS-485 (TX_EN)
-
   @param status Sets TX_EN (High=TX || LOW=RX)
 */
 void sensorInit(int status) {
@@ -159,7 +155,6 @@ void sensorInit(int status) {
 
 /**
   toggles LED_BUILTIN
-
   @param delay delay after LED toggle
 */
 void toggleLED(int d) {
@@ -175,4 +170,3 @@ void serialOutFlush(){
     char t = SerialOut.read();
   }
 }
-
