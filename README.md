@@ -15,21 +15,30 @@ These code projects were written in the Spring 2023 semester for EVSC: 4995 (Sup
 * [RTCZero_SetTime](#rtczero_settime)
 * [RTCZero_SetTime_Optimized](#rtczero_settime_optimized)
 * [SensorLog](#sensorlog)
-* [SensorLog_OLD](#sensorlog_OLD)
+* [SensorLog_OLD](#sensorlog_old)
 * [SensorPoll](#sensorpoll)
 * [SensorPoll_ESP32](#sensorpoll_esp32)
 * [SensorSerial](#sensorserial)
 
 ### BLE_Server_ESP32
+> Polls the FT702LT anemometer for wind speed and direction and send data via BLE GATT Characteristics
+
+***Code Created for RocketScream Red Comet ESP32***
+
+Serial Pins (anemometer)
+- RX Pin -> 4
+- TX Pin -> 5
 
 ### BLE_Test_ESP32
+> Simple BLE sketch for ESP32, shows writing to GATT characteristics and callback structure
+
+***Code Created for RocketScream Red Comet ESP32***
 
 ### GPS_Clock
-
 > Set the Arduino Zero on-board RTC through GPS data
 
 ### NonBlockingWrite
-
+> Modified sketch of "Non-blocking Write" example in SD.h
 
 ### RS485_example
 > Basic usage of RS-485 (half-duplex) between 2 Arduino boards
@@ -46,18 +55,23 @@ These code projects were written in the Spring 2023 semester for EVSC: 4995 (Sup
 Optimizes compile time parsing and uses a user-defined date to reduce the compile time delay to 7.4s
 
 ### SensorLog
-> ***TODO*** Continuation of [SensorPoll](#sensorpoll)
-- ***TODO*** : Non-blocking write operation (minimal write delay)
+> Polls the FT702LT anemometer for wind speed and direction and saves the data to attached SD card <br> ***Uses Sdfat library***
+
+This was implimented using an FSM to write sensor data to a user defined 512-byte global buffer. The sensor readings would be formatted into 32-byte packets in the following format: $MM/DD/YY,HH:MM:SS.SSS,VVV.V,DDD; V=wind speed in m/s, D=wind direction in degrees. Once 16 of these packets (512-bytes) populated the user defined buffer, this buffer would be writen to the SD card.  THIS IS NOT NEEDED.  The SD Library will automatically buffer writes, making this user defined buffer extraneous.
 - ***TODO*** : Test checksum response validation latency
 
 ### SensorLog_OLD
-
+> Polls the FT702LT anemometer for wind speed and direction and saves the data to attached SD card <br> ***Uses SD library (wrapper for Sdfat)***
 
 ### SensorPoll
 > Polls the FT702LT anemometer for wind speed and direction (prints to SerialUSB)
 
 ### SensorPoll_ESP32
+> Polls the FT702LT anemometer for wind speed and direction (prints to SerialUSB)
 
+***Code Created for RocketScream Red Comet ESP32***
 
 ### SensorSerial
-> ***TODO*** Enables the FT-7 anemometer to send continuous updates without periphal polling commands
+> Enables the FT-7 anemometer to send continuous updates without periphal polling commands
+
+This was an early project that was abandonded in favor of polling the sensor.  Untested, but the command for enabling the continuous updates (CU) is correct.
